@@ -1,0 +1,39 @@
+# Étape 1 : Sélection de l'image de base
+# On utilise Node.js version 21.7.1
+FROM node:21.7.1
+
+# Étape 2 : Création d'un utilisateur dédié et définition du répertoire de travail
+# Création d'un utilisateur nommé "appuser" pour renforcer la sécurité
+RUN adduser --disabled-password --gecos "" appuser
+
+# Définition du répertoire de travail et attribution des permissions à "appuser"
+WORKDIR /app
+RUN chown appuser:appuser /app
+
+# Étape 3 : Transfert des fichiers de configuration dans le conteneur
+# On copie uniquement package.json et package-lock.json
+COPY package*.json ./
+
+# Étape 4 : Installation des dépendances en tant qu'utilisateur root
+# Installation des modules nécessaires à l'application
+RUN npm install
+
+# Étape 5 : Copier tous les fichiers de l'application dans le conteneur
+# Transfert du contenu complet de l'application vers le répertoire de travail
+COPY . /app
+
+# Étape 6 : Attribution des fichiers à "appuser"
+# Cela garantit que "appuser" possède tous les fichiers dans /app
+RUN chown -R appuser:appuser /app
+
+# Étape 7 : Passer à l'utilisateur "appuser"
+# À partir de cette étape, les commandes sont exécutées en tant que "appuser" (non root)
+USER appuser
+
+# Étape 8 : Ouverture du port de l'application (par exemple, 3000)
+# Rend le port 3000 accessible pour les connexions externes
+EXPOSE 3000
+
+# Étape 9 : Lancement de l'application
+# Commande de démarrage de l'application
+CMD ["npm", "start"]
